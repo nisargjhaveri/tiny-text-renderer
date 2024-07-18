@@ -1,0 +1,17 @@
+{
+    "$schema": "https://raw.githubusercontent.com/platformio/platformio-core/develop/platformio/assets/schema/library.json",
+    "name": "tiny-text-renderer",
+    "version": "0.0.0",
+    "build": {
+        "srcFilter": [
+            "+<*.c>",
+            "+<*.cpp>",
+            "+<harfbuzz/src/harfbuzz.cc>"
+        ],
+        "flags": [
+            "-I src/harfbuzz/src",
+            "-DHB_TINY",
+            "-DHB_CONFIG_OVERRIDE_H=\\\"$PROJECT_LIBDEPS_DIR/$PIOENV/tiny-text-renderer/src/harfbuzz-config-override.h\\\""
+        ]
+    }
+}
