@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "harfbuzz_schrift.h"
+#include "glyph.h"
 
 #define max(a, b) ({ \
     typeof(a) _a = (a); \

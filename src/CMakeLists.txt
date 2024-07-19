@@ -5,7 +5,7 @@ set(CMAKE_CXX_FLAGS "-Oz")
 add_library(tiny-text-renderer
     harfbuzz/src/harfbuzz.cc
     tiny_text_renderer.c
-    harfbuzz_schrift.c
+    glyph.c
     schrift.c
 )
 
