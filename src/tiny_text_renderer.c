@@ -103,7 +103,16 @@ void measure_text(hb_font_t* font, const char *text, unsigned int *width, unsign
     hb_buffer_destroy(buf);
 }
 
-void draw_text(hb_font_t* font, const char *text, unsigned int x_offset, unsigned int y_offset, uint8_t* pixels, unsigned int width, unsigned int height) {
+void draw_text_with_callback(
+    hb_font_t* font,
+    const char *text,
+    unsigned int x_offset,
+    unsigned int y_offset,
+    unsigned int width,
+    unsigned int height,
+    void (*draw_pixel_at)(unsigned int x, unsigned int y, uint8_t mask, void* user_data),
+    void* user_data)
+{
     hb_buffer_t *buf = hb_buffer_create();
     hb_buffer_add_utf8(buf, text, -1, 0, -1);
 
@@ -150,8 +159,7 @@ void draw_text(hb_font_t* font, const char *text, unsigned int x_offset, unsigne
                     continue;
                 }
 
-                const int image_i = (image_y * width) + image_x;
-                pixels[image_i] = max(pixels[image_i], glyph_pixels[y * glyph_width + x]);
+                draw_pixel_at(image_x, image_y, glyph_pixels[y * glyph_width + x], user_data);
             }
         }
 
@@ -162,4 +170,21 @@ void draw_text(hb_font_t* font, const char *text, unsigned int x_offset, unsigne
     }
 
     hb_buffer_destroy(buf);
+}
+
+typedef struct draw_pixel_on_buffer_data {
+    uint8_t* pixels;
+    unsigned int width;
+} draw_pixel_on_buffer_data;
+
+static void draw_pixel_on_buffer(unsigned int x, unsigned int y, uint8_t mask, void* user_data) {
+    draw_pixel_on_buffer_data* data = (draw_pixel_on_buffer_data*)user_data;
+
+    const int image_i = (y * data->width) + x;
+    data->pixels[image_i] = max(data->pixels[image_i], mask);
+}
+
+void draw_text_on_buffer(hb_font_t* font, const char *text, unsigned int x_offset, unsigned int y_offset, unsigned int width, unsigned int height, uint8_t* pixels) {
+    draw_pixel_on_buffer_data data = { pixels, width };
+    draw_text_with_callback(font, text, x_offset, y_offset, width, height, draw_pixel_on_buffer, &data);
 }

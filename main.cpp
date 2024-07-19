@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
 
     uint8_t* pixels = (uint8_t*)malloc(width * height);
     memset(pixels, 0, width * height);
-    draw_text(font, text, 0, 0, pixels, width, height);
+    draw_text_on_buffer(font, text, 0, 0, width, height, pixels);
 
     write_bitmap("/tmp/output.bmp", pixels, width, height);
 

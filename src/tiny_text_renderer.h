@@ -12,7 +12,8 @@ void destroy_font(hb_font_t* font);
 
 void measure_text(hb_font_t* font, const char *text, unsigned int *width, unsigned int *height, unsigned int *baseline);
 
-void draw_text(hb_font_t* font, const char *text, unsigned int x_offset, unsigned int y_offset, uint8_t* pixels, unsigned int width, unsigned int height);
+void draw_text_on_buffer(hb_font_t* font, const char *text, unsigned int x_offset, unsigned int y_offset, unsigned int width, unsigned int height, uint8_t* pixels);
+void draw_text_with_callback(hb_font_t* font, const char *text, unsigned int x_offset, unsigned int y_offset, unsigned int width, unsigned int height, void (*draw_pixel_at)(unsigned int x, unsigned int y, uint8_t mask, void* user_data), void* user_data);
 
 #ifdef __cplusplus
 }
