@@ -99,18 +99,18 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    hb_font_t* font = create_font(font_data, file_data_size, size);
+    hb_font_t* font = ttr_create_font(font_data, file_data_size, size);
 
     unsigned int width, height, baseline;
-    measure_text(font, text, &width, &height, &baseline);
+    ttr_measure_text(font, text, &width, &height, &baseline);
 
     uint8_t* pixels = (uint8_t*)malloc(width * height);
     memset(pixels, 0, width * height);
-    draw_text_on_buffer(font, text, 0, 0, width, height, pixels);
+    ttr_draw_text_on_buffer(font, text, 0, 0, width, height, pixels);
 
     write_bitmap("/tmp/output.bmp", pixels, width, height);
 
-    destroy_font(font);
+    ttr_destroy_font(font);
 
     printf("Width: %d, Height: %d, Baseline: %d\n", width, height, baseline);
 

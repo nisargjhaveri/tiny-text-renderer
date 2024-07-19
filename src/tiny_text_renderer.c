@@ -21,7 +21,7 @@
 })
 
 
-hb_font_t* create_font(const char* font_data, unsigned int font_data_size, unsigned int height) {
+hb_font_t* ttr_create_font(const char* font_data, unsigned int font_data_size, unsigned int height) {
     hb_blob_t *blob = hb_blob_create((const char*)font_data, font_data_size, HB_MEMORY_MODE_READONLY, NULL, NULL);
     hb_face_t *face = hb_face_create(blob, 0);
     hb_font_t *font = hb_font_create(face);
@@ -34,12 +34,12 @@ hb_font_t* create_font(const char* font_data, unsigned int font_data_size, unsig
     return font;
 }
 
-void destroy_font(hb_font_t* font) {
+void ttr_destroy_font(hb_font_t* font) {
     hb_font_destroy(font);
 }
 
 
-static void measure_internal(hb_font_t *font, unsigned int glyph_count, hb_glyph_info_t *glyph_info, hb_glyph_position_t *glyph_pos, unsigned int *width, unsigned int *height, unsigned int *baseline) {
+static void ttr_measure_internal(hb_font_t *font, unsigned int glyph_count, hb_glyph_info_t *glyph_info, hb_glyph_position_t *glyph_pos, unsigned int *width, unsigned int *height, unsigned int *baseline) {
     bool calculate_width_height = (width != NULL && height != NULL);
     bool calculate_baseline = (baseline != NULL);
 
@@ -86,7 +86,7 @@ static void measure_internal(hb_font_t *font, unsigned int glyph_count, hb_glyph
     }
 }
 
-void measure_text(hb_font_t* font, const char *text, unsigned int *width, unsigned int *height, unsigned int *baseline) {
+void ttr_measure_text(hb_font_t* font, const char *text, unsigned int *width, unsigned int *height, unsigned int *baseline) {
     hb_buffer_t *buf = hb_buffer_create();
     hb_buffer_add_utf8(buf, text, -1, 0, -1);
 
@@ -98,12 +98,12 @@ void measure_text(hb_font_t* font, const char *text, unsigned int *width, unsign
     hb_glyph_info_t *glyph_info    = hb_buffer_get_glyph_infos(buf, &glyph_count);
     hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
 
-    measure_internal(font, glyph_count, glyph_info, glyph_pos, width, height, baseline);
+    ttr_measure_internal(font, glyph_count, glyph_info, glyph_pos, width, height, baseline);
 
     hb_buffer_destroy(buf);
 }
 
-void draw_text_with_callback(
+void ttr_draw_text_with_callback(
     hb_font_t* font,
     const char *text,
     unsigned int x_offset,
@@ -125,7 +125,7 @@ void draw_text_with_callback(
     hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
 
     unsigned int baseline = 0;
-    measure_internal(font, glyph_count, glyph_info, glyph_pos, NULL, NULL, &baseline);
+    ttr_measure_internal(font, glyph_count, glyph_info, glyph_pos, NULL, NULL, &baseline);
 
     int cursor_x = x_offset;
     int cursor_y = y_offset + baseline;
@@ -147,7 +147,7 @@ void draw_text_with_callback(
         uint8_t* glyph_pixels = (uint8_t*)malloc(glyph_width * glyph_height);
         memset(glyph_pixels, 0, glyph_width * glyph_height);
 
-        draw_glyph(font, glyphid, extents, glyph_pixels);
+        ttr_draw_glyph(font, glyphid, extents, glyph_pixels);
 
         for (int y = 0; y < glyph_height; ++y) {
             for (int x = 0; x < glyph_width; ++x) {
@@ -177,14 +177,14 @@ typedef struct draw_pixel_on_buffer_data {
     unsigned int width;
 } draw_pixel_on_buffer_data;
 
-static void draw_pixel_on_buffer(unsigned int x, unsigned int y, uint8_t mask, void* user_data) {
+static void ttr_draw_pixel_on_buffer(unsigned int x, unsigned int y, uint8_t mask, void* user_data) {
     draw_pixel_on_buffer_data* data = (draw_pixel_on_buffer_data*)user_data;
 
     const int image_i = (y * data->width) + x;
     data->pixels[image_i] = max(data->pixels[image_i], mask);
 }
 
-void draw_text_on_buffer(hb_font_t* font, const char *text, unsigned int x_offset, unsigned int y_offset, unsigned int width, unsigned int height, uint8_t* pixels) {
+void ttr_draw_text_on_buffer(hb_font_t* font, const char *text, unsigned int x_offset, unsigned int y_offset, unsigned int width, unsigned int height, uint8_t* pixels) {
     draw_pixel_on_buffer_data data = { pixels, width };
-    draw_text_with_callback(font, text, x_offset, y_offset, width, height, draw_pixel_on_buffer, &data);
+    ttr_draw_text_with_callback(font, text, x_offset, y_offset, width, height, ttr_draw_pixel_on_buffer, &data);
 }

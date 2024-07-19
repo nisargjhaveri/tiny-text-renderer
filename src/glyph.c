@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-void sft_move_to(
+static void sft_move_to(
     hb_draw_funcs_t *dfuncs,
     void *draw_data,
     hb_draw_state_t *st,
@@ -16,7 +16,7 @@ void sft_move_to(
     add_point(outline, to_x, to_y);
 }
 
-void sft_line_to(
+static void sft_line_to(
     hb_draw_funcs_t *dfuncs,
     void *draw_data,
     hb_draw_state_t *st,
@@ -30,7 +30,7 @@ void sft_line_to(
     add_line(outline, outline->numPoints - 2, outline->numPoints - 1);
 }
 
-void sft_quadratic_to(
+static void sft_quadratic_to(
     hb_draw_funcs_t *dfuncs,
     void *draw_data,
     hb_draw_state_t *st,
@@ -47,7 +47,7 @@ void sft_quadratic_to(
     add_curve(outline, outline->numPoints - 3, outline->numPoints - 2, outline->numPoints - 1);
 }
 
-void sft_cubic_to(
+static void sft_cubic_to(
     hb_draw_funcs_t *dfuncs,
     void *draw_data,
     hb_draw_state_t *st,
@@ -62,7 +62,7 @@ void sft_cubic_to(
     // Not implemented
 }
 
-void sft_close_path(
+static void sft_close_path(
     hb_draw_funcs_t *dfuncs,
     void *draw_data,
     hb_draw_state_t *st,
@@ -71,7 +71,7 @@ void sft_close_path(
     // Nothing to do.
 }
 
-hb_draw_funcs_t* create_draw_funcs() {
+static hb_draw_funcs_t* ttr_create_draw_funcs() {
     hb_draw_funcs_t *funcs = hb_draw_funcs_create();
 
     hb_draw_funcs_set_move_to_func(funcs, sft_move_to, NULL, NULL);
@@ -83,13 +83,13 @@ hb_draw_funcs_t* create_draw_funcs() {
     return funcs;
 }
 
-int draw_glyph(hb_font_t* font, hb_codepoint_t glyph, hb_glyph_extents_t extents, uint8_t* pixels) {
+int ttr_draw_glyph(hb_font_t* font, hb_codepoint_t glyph, hb_glyph_extents_t extents, uint8_t* pixels) {
     if (extents.width == 0 || extents.height == 0) {
         // Nothing to be done
         return 0;
     }
 
-    hb_draw_funcs_t *funcs = create_draw_funcs();
+    hb_draw_funcs_t *funcs = ttr_create_draw_funcs();
 
     Outline outline;
     init_outline(&outline);
