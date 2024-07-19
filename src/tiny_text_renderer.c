@@ -155,7 +155,9 @@ void ttr_draw_text_with_callback(
                 const int image_x = cursor_x + x + glyph_x_offset;
                 const int image_y = cursor_y + y - glyph_y_offset;
 
-                if (image_x < 0 || image_x >= width || image_y < 0 || image_y >= height) {
+                if (image_x < 0 || image_y < 0
+                    || (width > 0 && image_x >= width)
+                    || (height > 0 && image_y >= height)) {
                     continue;
                 }
 
