@@ -83,7 +83,7 @@ static hb_draw_funcs_t* ttr_create_draw_funcs() {
     return funcs;
 }
 
-int ttr_draw_glyph(hb_font_t* font, hb_codepoint_t glyph, hb_glyph_extents_t extents, uint8_t* pixels) {
+int ttr_draw_glyph(hb_font_t* font, hb_codepoint_t glyph, hb_glyph_extents_t extents, void (*draw_pixel_at)(unsigned int x, unsigned int y, uint8_t mask, void* user_data), void* user_data) {
     if (extents.width == 0 || extents.height == 0) {
         // Nothing to be done
         return 0;
@@ -97,9 +97,11 @@ int ttr_draw_glyph(hb_font_t* font, hb_codepoint_t glyph, hb_glyph_extents_t ext
     hb_font_draw_glyph(font, glyph, funcs , &outline);
 
     SFT_Image image = {
-        .pixels = pixels,
+        .width = extents.width,
         .height = -1 * extents.height,
-        .width = extents.width
+
+        .draw_pixel_at = draw_pixel_at,
+        .user_data = user_data
     };
     float transform[6] = {1, 0, 0, -1, -extents.x_bearing, extents.y_bearing};
     sft_render_outline(&outline, transform, image);

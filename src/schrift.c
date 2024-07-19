@@ -59,7 +59,7 @@ static int  tesselate_curves(SFT_Outline *outl);
 static void draw_line(Raster buf, SFT_Point origin, SFT_Point goal);
 static void draw_lines(SFT_Outline *outl, Raster buf);
 /* post-processing */
-static void post_process(Raster buf, uint8_t *image);
+static void post_process(Raster buf, SFT_Image *image);
 /* glyph rendering */
 // static int  render_outline(SFT_Outline *outl, float transform[6], SFT_Image image);
 
@@ -372,7 +372,7 @@ draw_lines(SFT_Outline *outl, Raster buf)
 
 /* Integrate the values in the buffer to arrive at the final grayscale image. */
 static void
-post_process(Raster buf, uint8_t *image)
+post_process(Raster buf, SFT_Image *image)
 {
 	Cell cell;
 	float accum = 0.0, value;
@@ -383,8 +383,9 @@ post_process(Raster buf, uint8_t *image)
 		value    = fabs(accum + cell.area);
 		value    = MIN(value, 1.0);
 		value    = value * 255.0 + 0.5;
-		image[i] = (uint8_t) value;
 		accum   += cell.cover;
+
+		image->draw_pixel_at(i % image->width, i / image->width, (uint8_t)value, image->user_data);
 	}
 }
 
@@ -450,7 +451,7 @@ sft_render_outline(SFT_Outline *outl, float transform[6], SFT_Image image)
 
 	draw_lines(outl, buf);
 
-	post_process(buf, image.pixels);
+	post_process(buf, &image);
 
 	free(cells);
 	return 0;

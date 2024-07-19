@@ -103,6 +103,35 @@ void ttr_measure_text(hb_font_t* font, const char *text, unsigned int *width, un
     hb_buffer_destroy(buf);
 }
 
+typedef struct draw_glyph_pixel_data {
+    unsigned int width;
+    unsigned int height;
+
+    unsigned int offset_x;
+    unsigned int offset_y;
+
+    void (*draw_pixel_at)(unsigned int x, unsigned int y, uint8_t mask, void* user_data);
+    void* user_data;
+} draw_glyph_pixel_data;
+
+static void ttr_draw_glyph_pixel_at(unsigned int x, unsigned int y, uint8_t mask, void* user_data) {
+    draw_glyph_pixel_data* data = (draw_glyph_pixel_data*)user_data;
+
+    unsigned int width = data->width;
+    unsigned int height = data->height;
+
+    const int image_x = x + data->offset_x;
+    const int image_y = y + data->offset_y;
+
+    if (image_x < 0 || image_y < 0
+        || (width > 0 && image_x >= width)
+        || (height > 0 && image_y >= height)) {
+        return;
+    }
+
+    data->draw_pixel_at(image_x, image_y, mask, data->user_data);
+}
+
 void ttr_draw_text_with_callback(
     hb_font_t* font,
     const char *text,
@@ -144,28 +173,15 @@ void ttr_draw_text_with_callback(
         int glyph_x_offset = glyph_pos[i].x_offset + extents.x_bearing;
         int glyph_y_offset = glyph_pos[i].y_offset + extents.y_bearing;
 
-        uint8_t* glyph_pixels = (uint8_t*)malloc(glyph_width * glyph_height);
-        memset(glyph_pixels, 0, glyph_width * glyph_height);
-
-        ttr_draw_glyph(font, glyphid, extents, glyph_pixels);
-
-        for (int y = 0; y < glyph_height; ++y) {
-            for (int x = 0; x < glyph_width; ++x) {
-                // Todo: support non-monochrome displays
-                const int image_x = cursor_x + x + glyph_x_offset;
-                const int image_y = cursor_y + y - glyph_y_offset;
-
-                if (image_x < 0 || image_y < 0
-                    || (width > 0 && image_x >= width)
-                    || (height > 0 && image_y >= height)) {
-                    continue;
-                }
-
-                draw_pixel_at(image_x, image_y, glyph_pixels[y * glyph_width + x], user_data);
-            }
-        }
-
-        free(glyph_pixels);
+        draw_glyph_pixel_data data = {
+            .width = width,
+            .height = height,
+            .offset_x = cursor_x + glyph_x_offset,
+            .offset_y = cursor_y - glyph_y_offset,
+            .draw_pixel_at = draw_pixel_at,
+            .user_data = user_data
+        };
+        ttr_draw_glyph(font, glyphid, extents, ttr_draw_glyph_pixel_at, &data);
 
         cursor_x += glyph_pos[i].x_advance;
         cursor_y += glyph_pos[i].y_advance;

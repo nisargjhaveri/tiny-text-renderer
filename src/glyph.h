@@ -10,7 +10,13 @@ extern "C" {
 /**
  * Draw a glyph to a pixel buffer.
  */
-int ttr_draw_glyph(hb_font_t* font, hb_codepoint_t glyph, hb_glyph_extents_t extents, uint8_t* pixels);
+int ttr_draw_glyph(
+    hb_font_t* font,
+    hb_codepoint_t glyph,
+    hb_glyph_extents_t extents,
+    void (*draw_pixel_at)(unsigned int x, unsigned int y, uint8_t mask, void* user_data),
+    void* user_data
+);
 
 #ifdef __cplusplus
 }

@@ -33,9 +33,11 @@ typedef struct SFT_Curve   SFT_Curve;
 
 struct SFT_Image
 {
-	void *pixels;
 	int   width;
 	int   height;
+
+	void (*draw_pixel_at)(unsigned int x, unsigned int y, uint8_t mask, void* user_data);
+	void* user_data;
 };
 
 struct SFT_Point { float x, y; };
