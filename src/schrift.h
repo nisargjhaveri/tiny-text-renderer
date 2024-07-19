@@ -26,10 +26,10 @@ extern "C" {
 
 typedef struct SFT_Image    SFT_Image;
 
-typedef struct Outline  Outline;
-typedef struct Point   Point;
-typedef struct Line    Line;
-typedef struct Curve   Curve;
+typedef struct SFT_Outline  SFT_Outline;
+typedef struct SFT_Point   SFT_Point;
+typedef struct SFT_Line    SFT_Line;
+typedef struct SFT_Curve   SFT_Curve;
 
 struct SFT_Image
 {
@@ -38,15 +38,15 @@ struct SFT_Image
 	int   height;
 };
 
-struct Point { float x, y; };
-struct Line  { uint_least16_t beg, end; };
-struct Curve { uint_least16_t beg, end, ctrl; };
+struct SFT_Point { float x, y; };
+struct SFT_Line  { uint_least16_t beg, end; };
+struct SFT_Curve { uint_least16_t beg, end, ctrl; };
 
-struct Outline
+struct SFT_Outline
 {
-	Point *points;
-	Curve *curves;
-	Line  *lines;
+	SFT_Point *points;
+	SFT_Curve *curves;
+	SFT_Line  *lines;
 	uint_least16_t numPoints;
 	uint_least16_t capPoints;
 	uint_least16_t numCurves;
@@ -55,14 +55,14 @@ struct Outline
 	uint_least16_t capLines;
 };
 
-int  init_outline(Outline *outl);
-void free_outline(Outline *outl);
+int  sft_init_outline(SFT_Outline *outl);
+void sft_free_outline(SFT_Outline *outl);
 
-int add_point(Outline *outl, float x, float y);
-int add_curve(Outline *outl, uint_least16_t beg, uint_least16_t ctrl, uint_least16_t end);
-int add_line(Outline *outl, uint_least16_t beg, uint_least16_t end);
+int sft_add_point(SFT_Outline *outl, float x, float y);
+int sft_add_curve(SFT_Outline *outl, uint_least16_t beg, uint_least16_t ctrl, uint_least16_t end);
+int sft_add_line(SFT_Outline *outl, uint_least16_t beg, uint_least16_t end);
 
-int render_outline(Outline *outl, float transform[6], SFT_Image image);
+int sft_render_outline(SFT_Outline *outl, float transform[6], SFT_Image image);
 
 #ifdef __cplusplus
 }

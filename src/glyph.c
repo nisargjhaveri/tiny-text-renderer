@@ -11,9 +11,9 @@ static void sft_move_to(
     float to_y,
     void *user_data
 ) {
-    Outline* outline = (Outline*)draw_data;
+    SFT_Outline* outline = (SFT_Outline*)draw_data;
 
-    add_point(outline, to_x, to_y);
+    sft_add_point(outline, to_x, to_y);
 }
 
 static void sft_line_to(
@@ -24,10 +24,10 @@ static void sft_line_to(
     float to_y,
     void *user_data
 ) {
-    Outline* outline = (Outline*)draw_data;
+    SFT_Outline* outline = (SFT_Outline*)draw_data;
 
-    add_point(outline, to_x, to_y);
-    add_line(outline, outline->numPoints - 2, outline->numPoints - 1);
+    sft_add_point(outline, to_x, to_y);
+    sft_add_line(outline, outline->numPoints - 2, outline->numPoints - 1);
 }
 
 static void sft_quadratic_to(
@@ -40,11 +40,11 @@ static void sft_quadratic_to(
     float to_y,
     void *user_data
 ) {
-    Outline* outline = (Outline*)draw_data;
+    SFT_Outline* outline = (SFT_Outline*)draw_data;
 
-    add_point(outline, control_x, control_y);
-    add_point(outline, to_x, to_y);
-    add_curve(outline, outline->numPoints - 3, outline->numPoints - 2, outline->numPoints - 1);
+    sft_add_point(outline, control_x, control_y);
+    sft_add_point(outline, to_x, to_y);
+    sft_add_curve(outline, outline->numPoints - 3, outline->numPoints - 2, outline->numPoints - 1);
 }
 
 static void sft_cubic_to(
@@ -91,8 +91,8 @@ int ttr_draw_glyph(hb_font_t* font, hb_codepoint_t glyph, hb_glyph_extents_t ext
 
     hb_draw_funcs_t *funcs = ttr_create_draw_funcs();
 
-    Outline outline;
-    init_outline(&outline);
+    SFT_Outline outline;
+    sft_init_outline(&outline);
 
     hb_font_draw_glyph(font, glyph, funcs , &outline);
 
@@ -102,9 +102,9 @@ int ttr_draw_glyph(hb_font_t* font, hb_codepoint_t glyph, hb_glyph_extents_t ext
         .width = extents.width
     };
     float transform[6] = {1, 0, 0, -1, -extents.x_bearing, extents.y_bearing};
-    render_outline(&outline, transform, image);
+    sft_render_outline(&outline, transform, image);
 
-    free_outline(&outline);
+    sft_free_outline(&outline);
     hb_draw_funcs_destroy(funcs);
     return 0;
 }
