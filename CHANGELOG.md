@@ -1,3 +1,7 @@
+## v0.0.3
+
+- Fix issue with offsets not working in `ttr_draw_text_*` methods.
+
 ## v0.0.2
 
 - Avoid allocating pixel buffer for each glyph.
