@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "scale.h"
 #include "glyph.h"
 
 #define max(a, b) ({ \
@@ -26,7 +27,7 @@ hb_font_t* ttr_create_font(const char* font_data, unsigned int font_data_size, u
     hb_face_t *face = hb_face_create(blob, 0);
     hb_font_t *font = hb_font_create(face);
 
-    hb_font_set_scale(font, height, height);
+    hb_font_set_scale(font, ttr_scale_up(height), ttr_scale_up(height));
 
     hb_blob_destroy(blob);
     hb_face_destroy(face);
@@ -72,17 +73,17 @@ static void ttr_measure_internal(hb_font_t *font, unsigned int glyph_count, hb_g
             x_max = max(x_max, x_offset + extents.x_bearing + extents.width);
         }
 
-        x_offset += glyph_pos[i].x_advance;
-        y_offset += glyph_pos[i].y_advance;
+        x_offset += ttr_round_scaled(glyph_pos[i].x_advance);
+        y_offset += ttr_round_scaled(glyph_pos[i].y_advance);
     }
 
     if (calculate_width_height) {
-        *width = x_max - x_min;
-        *height = y_max - y_min;
+        *width = ttr_scale_down_ceil(x_max - x_min);
+        *height = ttr_scale_down_ceil(y_max - y_min);
     }
 
     if (calculate_baseline) {
-        *baseline = y_max;
+        *baseline = ttr_scale_down_round(y_max);
     }
 }
 
@@ -157,7 +158,7 @@ void ttr_draw_text_with_callback(
     ttr_measure_internal(font, glyph_count, glyph_info, glyph_pos, NULL, NULL, &baseline);
 
     int cursor_x = x_offset;
-    int cursor_y = y_offset + baseline;
+    int cursor_y = y_offset + ttr_scale_up(baseline);
     for (unsigned int i = 0; i < glyph_count; i++) {
         hb_codepoint_t glyphid  = glyph_info[i].codepoint;
 
@@ -176,15 +177,15 @@ void ttr_draw_text_with_callback(
         draw_glyph_pixel_data data = {
             .width = width,
             .height = height,
-            .offset_x = cursor_x + glyph_x_offset,
-            .offset_y = cursor_y - glyph_y_offset,
+            .offset_x = ttr_scale_down_floor(cursor_x + glyph_x_offset),
+            .offset_y = ttr_scale_down_floor(cursor_y - glyph_y_offset),
             .draw_pixel_at = draw_pixel_at,
             .user_data = user_data
         };
         ttr_draw_glyph(font, glyphid, extents, ttr_draw_glyph_pixel_at, &data);
 
-        cursor_x += glyph_pos[i].x_advance;
-        cursor_y += glyph_pos[i].y_advance;
+        cursor_x += ttr_round_scaled(glyph_pos[i].x_advance);
+        cursor_y += ttr_round_scaled(glyph_pos[i].y_advance);
     }
 
     hb_buffer_destroy(buf);

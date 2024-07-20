@@ -1,4 +1,5 @@
 #include "glyph.h"
+#include "scale.h"
 #include "schrift.h"
 
 #include <stddef.h>
@@ -13,7 +14,7 @@ static void sft_move_to(
 ) {
     SFT_Outline* outline = (SFT_Outline*)draw_data;
 
-    sft_add_point(outline, to_x, to_y);
+    sft_add_point(outline, ttr_scale_down(to_x), ttr_scale_down(to_y));
 }
 
 static void sft_line_to(
@@ -26,7 +27,7 @@ static void sft_line_to(
 ) {
     SFT_Outline* outline = (SFT_Outline*)draw_data;
 
-    sft_add_point(outline, to_x, to_y);
+    sft_add_point(outline, ttr_scale_down(to_x), ttr_scale_down(to_y));
     sft_add_line(outline, outline->numPoints - 2, outline->numPoints - 1);
 }
 
@@ -42,8 +43,8 @@ static void sft_quadratic_to(
 ) {
     SFT_Outline* outline = (SFT_Outline*)draw_data;
 
-    sft_add_point(outline, control_x, control_y);
-    sft_add_point(outline, to_x, to_y);
+    sft_add_point(outline, ttr_scale_down(control_x), ttr_scale_down(control_y));
+    sft_add_point(outline, ttr_scale_down(to_x), ttr_scale_down(to_y));
     sft_add_curve(outline, outline->numPoints - 3, outline->numPoints - 2, outline->numPoints - 1);
 }
 
@@ -97,13 +98,13 @@ int ttr_draw_glyph(hb_font_t* font, hb_codepoint_t glyph, hb_glyph_extents_t ext
     hb_font_draw_glyph(font, glyph, funcs , &outline);
 
     SFT_Image image = {
-        .width = extents.width,
-        .height = -1 * extents.height,
+        .width = ttr_scale_down_ceil(extents.width),
+        .height = ttr_scale_down_ceil(-1 * extents.height),
 
         .draw_pixel_at = draw_pixel_at,
         .user_data = user_data
     };
-    float transform[6] = {1, 0, 0, -1, -extents.x_bearing, extents.y_bearing};
+    float transform[6] = {1, 0, 0, -1, ttr_scale_down(-extents.x_bearing), ttr_scale_down(extents.y_bearing)};
     sft_render_outline(&outline, transform, image);
 
     sft_free_outline(&outline);
