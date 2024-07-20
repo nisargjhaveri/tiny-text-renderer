@@ -157,8 +157,8 @@ void ttr_draw_text_with_callback(
     unsigned int baseline = 0;
     ttr_measure_internal(font, glyph_count, glyph_info, glyph_pos, NULL, NULL, &baseline);
 
-    int cursor_x = x_offset;
-    int cursor_y = y_offset + ttr_scale_up(baseline);
+    int cursor_x = ttr_scale_up(x_offset);
+    int cursor_y = ttr_scale_up(y_offset + baseline);
     for (unsigned int i = 0; i < glyph_count; i++) {
         hb_codepoint_t glyphid  = glyph_info[i].codepoint;
 
