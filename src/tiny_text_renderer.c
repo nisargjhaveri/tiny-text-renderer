@@ -66,8 +66,8 @@ static void ttr_measure_internal(hb_font_t *font, unsigned int glyph_count, hb_g
 
         hb_glyph_extents_t extents;
         if (hb_font_get_glyph_extents(font, glyphid, &extents)) {
-            y_min = min(y_min, extents.y_bearing + extents.height);
-            y_max = max(y_max, extents.y_bearing);
+            y_min = min(y_min, y_offset + extents.y_bearing + extents.height);
+            y_max = max(y_max, y_offset + extents.y_bearing);
 
             x_min = min(x_min, x_offset + extents.x_bearing);
             x_max = max(x_max, x_offset + extents.x_bearing + extents.width);
@@ -167,9 +167,6 @@ void ttr_draw_text_with_callback(
             // Error?
             continue;
         }
-
-        unsigned int glyph_width = extents.width;
-        unsigned int glyph_height = -1 * extents.height;
 
         int glyph_x_offset = glyph_pos[i].x_offset + extents.x_bearing;
         int glyph_y_offset = glyph_pos[i].y_offset + extents.y_bearing;
