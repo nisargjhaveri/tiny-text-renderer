@@ -104,7 +104,7 @@ int ttr_draw_glyph(hb_font_t* font, hb_codepoint_t glyph, hb_glyph_extents_t ext
         .draw_pixel_at = draw_pixel_at,
         .user_data = user_data
     };
-    float transform[6] = {1, 0, 0, -1, ttr_scale_down(-extents.x_bearing), ttr_scale_down(extents.y_bearing)};
+    float transform[6] = {1, 0, 0, -1, ttr_scale_down_ceil(-extents.x_bearing), ttr_scale_down_ceil(extents.y_bearing)};
     sft_render_outline(&outline, transform, image);
 
     sft_free_outline(&outline);
