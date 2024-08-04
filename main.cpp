@@ -104,9 +104,13 @@ int main(int argc, char **argv) {
     unsigned int width, height, baseline;
     ttr_measure_text(font, text, &width, &height, &baseline);
 
+    unsigned int padding = 2;
+    width += padding;
+    height += padding;
+
     uint8_t* pixels = (uint8_t*)malloc(width * height);
     memset(pixels, 0, width * height);
-    ttr_draw_text_on_buffer(font, text, 0, 0, width, height, pixels);
+    ttr_draw_text_on_buffer(font, text, padding / 2, padding / 2, width, height, pixels);
 
     write_bitmap("/tmp/output.bmp", pixels, width, height);
 
