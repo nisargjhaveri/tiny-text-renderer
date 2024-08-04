@@ -40,7 +40,7 @@ void ttr_destroy_font(hb_font_t* font) {
 }
 
 
-static void ttr_measure_internal(hb_font_t *font, unsigned int glyph_count, hb_glyph_info_t *glyph_info, hb_glyph_position_t *glyph_pos, unsigned int *width, unsigned int *height, unsigned int *baseline) {
+static void ttr_measure_internal(hb_font_t *font, hb_direction_t direction, unsigned int glyph_count, hb_glyph_info_t *glyph_info, hb_glyph_position_t *glyph_pos, unsigned int *width, unsigned int *height, unsigned int *baseline) {
     bool calculate_width_height = (width != NULL && height != NULL);
     bool calculate_baseline = (baseline != NULL);
 
@@ -66,11 +66,11 @@ static void ttr_measure_internal(hb_font_t *font, unsigned int glyph_count, hb_g
 
         hb_glyph_extents_t extents;
         if (hb_font_get_glyph_extents(font, glyphid, &extents)) {
-            y_min = min(y_min, y_offset + extents.y_bearing + extents.height);
-            y_max = max(y_max, y_offset + extents.y_bearing);
+            y_min = min(y_min, y_offset + glyph_pos[i].y_offset + extents.y_bearing + extents.height);
+            y_max = max(y_max, y_offset + glyph_pos[i].y_offset + extents.y_bearing);
 
-            x_min = min(x_min, x_offset + extents.x_bearing);
-            x_max = max(x_max, x_offset + extents.x_bearing + extents.width);
+            x_min = min(x_min, x_offset + glyph_pos[i].x_offset + extents.x_bearing);
+            x_max = max(x_max, x_offset + glyph_pos[i].x_offset + extents.x_bearing + extents.width);
         }
 
         x_offset += ttr_round_scaled(glyph_pos[i].x_advance);
@@ -83,7 +83,11 @@ static void ttr_measure_internal(hb_font_t *font, unsigned int glyph_count, hb_g
     }
 
     if (calculate_baseline) {
-        *baseline = ttr_scale_down_round(y_max);
+        if (HB_DIRECTION_IS_VERTICAL(direction)) {
+            *baseline = ttr_scale_down_round(-x_min);
+        } else {
+            *baseline = ttr_scale_down_round(y_max);
+        }
     }
 }
 
@@ -98,8 +102,9 @@ void ttr_measure_text(hb_font_t* font, const char *text, unsigned int *width, un
     unsigned int glyph_count;
     hb_glyph_info_t *glyph_info    = hb_buffer_get_glyph_infos(buf, &glyph_count);
     hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
+    hb_direction_t direction = hb_buffer_get_direction(buf);
 
-    ttr_measure_internal(font, glyph_count, glyph_info, glyph_pos, width, height, baseline);
+    ttr_measure_internal(font, direction, glyph_count, glyph_info, glyph_pos, width, height, baseline);
 
     hb_buffer_destroy(buf);
 }
@@ -153,12 +158,13 @@ void ttr_draw_text_with_callback(
     unsigned int glyph_count;
     hb_glyph_info_t *glyph_info    = hb_buffer_get_glyph_infos(buf, &glyph_count);
     hb_glyph_position_t *glyph_pos = hb_buffer_get_glyph_positions(buf, &glyph_count);
+    hb_direction_t direction = hb_buffer_get_direction(buf);
 
     unsigned int baseline = 0;
-    ttr_measure_internal(font, glyph_count, glyph_info, glyph_pos, NULL, NULL, &baseline);
+    ttr_measure_internal(font, direction, glyph_count, glyph_info, glyph_pos, NULL, NULL, &baseline);
 
-    int cursor_x = ttr_scale_up(x_offset);
-    int cursor_y = ttr_scale_up(y_offset + baseline);
+    int cursor_x = ttr_scale_up(x_offset + (HB_DIRECTION_IS_VERTICAL(direction) ? baseline : 0));
+    int cursor_y = ttr_scale_up(y_offset + (HB_DIRECTION_IS_HORIZONTAL(direction) ? baseline : 0));
     for (unsigned int i = 0; i < glyph_count; i++) {
         hb_codepoint_t glyphid  = glyph_info[i].codepoint;
 
