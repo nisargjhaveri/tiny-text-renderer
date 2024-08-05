@@ -1,6 +1,5 @@
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-
 set(CMAKE_CXX_FLAGS "-Oz")
+set(CMAKE_C_FLAGS "-Oz")
 
 add_library(tiny-text-renderer
     harfbuzz/src/harfbuzz.cc
