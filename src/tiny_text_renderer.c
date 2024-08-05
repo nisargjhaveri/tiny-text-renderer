@@ -59,22 +59,22 @@ static void ttr_measure_internal(hb_font_t *font, hb_direction_t direction, unsi
         return;
     }
 
-    int x_offset = 0;
-    int y_offset = 0;
+    int cursor_x = 0;
+    int cursor_y = 0;
     for (unsigned int i = 0; i < glyph_count; i++) {
         hb_codepoint_t glyphid  = glyph_info[i].codepoint;
 
         hb_glyph_extents_t extents;
         if (hb_font_get_glyph_extents(font, glyphid, &extents)) {
-            y_min = min(y_min, y_offset + glyph_pos[i].y_offset + extents.y_bearing + extents.height);
-            y_max = max(y_max, y_offset + glyph_pos[i].y_offset + extents.y_bearing);
+            y_min = min(y_min, cursor_y + glyph_pos[i].y_offset + extents.y_bearing + extents.height);
+            y_max = max(y_max, cursor_y + glyph_pos[i].y_offset + extents.y_bearing);
 
-            x_min = min(x_min, x_offset + glyph_pos[i].x_offset + extents.x_bearing);
-            x_max = max(x_max, x_offset + glyph_pos[i].x_offset + extents.x_bearing + extents.width);
+            x_min = min(x_min, cursor_x + glyph_pos[i].x_offset + extents.x_bearing);
+            x_max = max(x_max, cursor_x + glyph_pos[i].x_offset + extents.x_bearing + extents.width);
         }
 
-        x_offset += ttr_round_scaled(glyph_pos[i].x_advance);
-        y_offset += ttr_round_scaled(glyph_pos[i].y_advance);
+        cursor_x += glyph_pos[i].x_advance;
+        cursor_y += glyph_pos[i].y_advance;
     }
 
     if (calculate_width_height) {
@@ -174,21 +174,21 @@ void ttr_draw_text_with_callback(
             continue;
         }
 
-        int glyph_x_offset = glyph_pos[i].x_offset + extents.x_bearing;
-        int glyph_y_offset = glyph_pos[i].y_offset + extents.y_bearing;
+        int glyph_start_x = cursor_x + glyph_pos[i].x_offset + extents.x_bearing;
+        int glyph_start_y = cursor_y - glyph_pos[i].y_offset - extents.y_bearing;
 
         draw_glyph_pixel_data data = {
             .width = width,
             .height = height,
-            .offset_x = ttr_scale_down_floor(cursor_x + glyph_x_offset),
-            .offset_y = ttr_scale_down_floor(cursor_y - glyph_y_offset),
+            .offset_x = ttr_scale_down_floor(glyph_start_x),
+            .offset_y = ttr_scale_down_floor(glyph_start_y),
             .draw_pixel_at = draw_pixel_at,
             .user_data = user_data
         };
-        ttr_draw_glyph(font, glyphid, extents, ttr_draw_glyph_pixel_at, &data);
+        ttr_draw_glyph(font, glyphid, extents, ttr_fraction_scaled(glyph_start_x), ttr_fraction_scaled(glyph_start_y), ttr_draw_glyph_pixel_at, &data);
 
-        cursor_x += ttr_round_scaled(glyph_pos[i].x_advance);
-        cursor_y += ttr_round_scaled(glyph_pos[i].y_advance);
+        cursor_x += glyph_pos[i].x_advance;
+        cursor_y += glyph_pos[i].y_advance;
     }
 
     hb_buffer_destroy(buf);
@@ -203,7 +203,7 @@ static void ttr_draw_pixel_on_buffer(unsigned int x, unsigned int y, uint8_t mas
     draw_pixel_on_buffer_data* data = (draw_pixel_on_buffer_data*)user_data;
 
     const int image_i = (y * data->width) + x;
-    data->pixels[image_i] = max(data->pixels[image_i], mask);
+    data->pixels[image_i] = min(data->pixels[image_i] + mask, 255);
 }
 
 void ttr_draw_text_on_buffer(hb_font_t* font, const char *text, unsigned int x_offset, unsigned int y_offset, unsigned int width, unsigned int height, uint8_t* pixels) {

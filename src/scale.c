@@ -13,8 +13,20 @@ int ttr_round_scaled(int value) {
     return (value + (hb_scale_factor >> 1)) & ~(hb_scale_factor - 1);
 }
 
-float ttr_scale_down(float value) {
+int ttr_floor_scaled(int value) {
+    return value & ~(hb_scale_factor - 1);
+}
+
+int ttr_fraction_scaled(int value) {
+    return value & (hb_scale_factor - 1);
+}
+
+float ttr_scale_down_float(float value) {
     return value / hb_scale_factor_divider;
+}
+
+float ttr_scale_down(int value) {
+    return (float)value / hb_scale_factor_divider;
 }
 
 int ttr_scale_down_ceil(int value) {

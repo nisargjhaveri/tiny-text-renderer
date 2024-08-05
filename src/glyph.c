@@ -14,7 +14,7 @@ static void sft_move_to(
 ) {
     SFT_Outline* outline = (SFT_Outline*)draw_data;
 
-    sft_add_point(outline, ttr_scale_down(to_x), ttr_scale_down(to_y));
+    sft_add_point(outline, ttr_scale_down_float(to_x), ttr_scale_down_float(to_y));
 }
 
 static void sft_line_to(
@@ -27,7 +27,7 @@ static void sft_line_to(
 ) {
     SFT_Outline* outline = (SFT_Outline*)draw_data;
 
-    sft_add_point(outline, ttr_scale_down(to_x), ttr_scale_down(to_y));
+    sft_add_point(outline, ttr_scale_down_float(to_x), ttr_scale_down_float(to_y));
     sft_add_line(outline, outline->numPoints - 2, outline->numPoints - 1);
 }
 
@@ -43,8 +43,8 @@ static void sft_quadratic_to(
 ) {
     SFT_Outline* outline = (SFT_Outline*)draw_data;
 
-    sft_add_point(outline, ttr_scale_down(control_x), ttr_scale_down(control_y));
-    sft_add_point(outline, ttr_scale_down(to_x), ttr_scale_down(to_y));
+    sft_add_point(outline, ttr_scale_down_float(control_x), ttr_scale_down_float(control_y));
+    sft_add_point(outline, ttr_scale_down_float(to_x), ttr_scale_down_float(to_y));
     sft_add_curve(outline, outline->numPoints - 3, outline->numPoints - 2, outline->numPoints - 1);
 }
 
@@ -84,7 +84,15 @@ static hb_draw_funcs_t* ttr_create_draw_funcs() {
     return funcs;
 }
 
-int ttr_draw_glyph(hb_font_t* font, hb_codepoint_t glyph, hb_glyph_extents_t extents, void (*draw_pixel_at)(unsigned int x, unsigned int y, uint8_t mask, void* user_data), void* user_data) {
+int ttr_draw_glyph(
+    hb_font_t* font,
+    hb_codepoint_t glyph,
+    hb_glyph_extents_t extents,
+    unsigned int offset_x,
+    unsigned int offset_y,
+    void (*draw_pixel_at)(unsigned int x, unsigned int y, uint8_t mask, void* user_data),
+    void* user_data
+) {
     if (extents.width == 0 || extents.height == 0) {
         // Nothing to be done
         return 0;
@@ -104,7 +112,7 @@ int ttr_draw_glyph(hb_font_t* font, hb_codepoint_t glyph, hb_glyph_extents_t ext
         .draw_pixel_at = draw_pixel_at,
         .user_data = user_data
     };
-    float transform[6] = {1, 0, 0, -1, ttr_scale_down_ceil(-extents.x_bearing), ttr_scale_down_ceil(extents.y_bearing)};
+    float transform[6] = {1, 0, 0, -1, ttr_scale_down(offset_x - extents.x_bearing), ttr_scale_down(offset_y + extents.y_bearing)};
     sft_render_outline(&outline, transform, image);
 
     sft_free_outline(&outline);
