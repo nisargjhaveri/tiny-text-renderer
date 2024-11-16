@@ -1,5 +1,4 @@
 #include <stdint.h>
-#include <math.h>
 
 static const uint8_t hb_scale_shift = 6;
 static const uint16_t hb_scale_factor = 1 << hb_scale_shift;
