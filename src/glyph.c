@@ -106,8 +106,8 @@ int ttr_draw_glyph(
     hb_font_draw_glyph(font, glyph, funcs , &outline);
 
     SFT_Image image = {
-        .width = ttr_scale_down_ceil(extents.width),
-        .height = ttr_scale_down_ceil(-1 * extents.height),
+        .width = ttr_scale_down_ceil(offset_x + extents.width),
+        .height = ttr_scale_down_ceil(offset_y - extents.height),
 
         .draw_pixel_at = draw_pixel_at,
         .user_data = user_data
