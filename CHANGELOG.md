@@ -1,3 +1,6 @@
+## v0.0.5
+- Fix buffer overflow by properly accounting for fractional offsets when calculating size of a glyph
+
 ## v0.0.4
 - Improve handling of fractional extents and advances to get better aligned glyphs
 - Other miscellaneous fixes
